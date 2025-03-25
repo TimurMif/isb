@@ -1,3 +1,5 @@
+import json
+
 def read_from_file(path_to_file: str) -> str:
     """
     Reads the contents of the file
@@ -5,9 +7,8 @@ def read_from_file(path_to_file: str) -> str:
     :return content: Content from file
     """
     content = ""
-    file = open(path_to_file, "r")
-    content = file.read()
-    file.close()
+    with open(path_to_file, 'r') as file:
+        content = file.read()
     return content
 
 def write_in_file(content: str, path_to_file: str) -> str:
@@ -17,7 +18,16 @@ def write_in_file(content: str, path_to_file: str) -> str:
     :param content: Content to write
     :return content: Content
     """
-    file = open(path_to_file, "w")
-    file.write(content)
-    file.close()
+    with open(path_to_file, 'w') as file:
+        file.write(content)
     return content
+
+def read_from_json_file(path_to_file: str):
+    """
+    Reads the contents of a json file
+    :param path_to_file: Path to file
+    :return : Content from file
+    """
+    with open(path_to_file, 'r', encoding='utf-8') as f:
+        loaded_matrix = json.load(f)
+    return loaded_matrix

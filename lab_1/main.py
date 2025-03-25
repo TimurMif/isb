@@ -1,31 +1,27 @@
-from constants import MATRIX, PATH_TO_WRITE_DECRYPT_TEXT_2
-from constants import DECRYPTION_KEY
-from constants import SOURCE_TEXT_1
-from constants import SOURCE_TEXT_2
-from constants import PATH_TO_WRITE_ENCRYPT_TEXT_1
-from constants import PATH_TO_WRITE_DECRYPT_TEXT_1
-from constants import PATH_TO_WRITE_DECRYPT_TEXT_2
-from constants import PATH_TO_WRITE_DESC_WORD_CHANCE
-from func_for_encrypt import text_encrypting
-from func_for_decrypt import text_decrypting
-from func_for_decrypt import decrypting_text_with_key
-from func_info_text import word_chance_in_text
-from func_for_file import write_in_file
+import constants
+import func_for_encrypt
+import func_for_decrypt
+import func_info_text
+import func_for_file
 
 
 def main():
-    encrypted_text_1 = text_encrypting(SOURCE_TEXT_1, MATRIX)
-    write_in_file(encrypted_text_1, PATH_TO_WRITE_ENCRYPT_TEXT_1)
-    print(encrypted_text_1)
+    try:
+        encrypted_text_1 = func_for_encrypt.text_encrypting(constants.SOURCE_TEXT_1, constants.MATRIX)
+        func_for_file.write_in_file(encrypted_text_1, constants.PATH_TO_WRITE_ENCRYPT_TEXT_1)
+        print(encrypted_text_1)
 
-    decrypted_text_1 = text_decrypting(encrypted_text_1, MATRIX)
-    write_in_file(decrypted_text_1, PATH_TO_WRITE_DECRYPT_TEXT_1)
-    print(decrypted_text_1)
+        decrypted_text_1 = func_for_decrypt.text_decrypting(encrypted_text_1, constants.MATRIX)
+        func_for_file.write_in_file(decrypted_text_1, constants.PATH_TO_WRITE_DECRYPT_TEXT_1)
+        print(decrypted_text_1)
 
-    write_in_file(str(word_chance_in_text(SOURCE_TEXT_2)), PATH_TO_WRITE_DESC_WORD_CHANCE)
-    decrypted_text2 = decrypting_text_with_key(SOURCE_TEXT_2, DECRYPTION_KEY)
-    write_in_file(decrypted_text2, PATH_TO_WRITE_DECRYPT_TEXT_2)
-    print(decrypted_text2)
+        func_for_file.write_in_file(str(func_info_text.word_chance_in_text(constants.SOURCE_TEXT_2)), constants.PATH_TO_WRITE_DESC_WORD_CHANCE)
+
+        decrypted_text2 = func_for_decrypt.decrypting_text_with_key(constants.SOURCE_TEXT_2, constants.DECRYPTION_KEY)
+        func_for_file.write_in_file(decrypted_text2, constants.PATH_TO_WRITE_DECRYPT_TEXT_2)
+        print(decrypted_text2)
+    except ValueError as error:
+        print(f"{error}")
 
 if __name__ == "__main__":
     main()

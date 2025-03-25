@@ -6,6 +6,11 @@ def encrypting_symbol(char: str, key_matrix: list) -> str:
     :param key_matrix: Matrix-key
     :return result_str: Result string
     """
+    if not char:
+        raise ValueError("Char to encrypt is empty")
+
+    if not ('А' <= char <= 'я' or char in ' ,.!:;?""\n'):
+        raise ValueError("Char is not on russian language")
     char_up_case = char.upper()
     result_str = ""
     for row in range(0, len(key_matrix)):
@@ -24,7 +29,14 @@ def text_encrypting(text: str, key_matrix: list) -> str:
     :param key_matrix: The key is the matrix with which we encrypt
     :return result_string: A string consisting of the indexes of each character in the matrix
     """
+    if not text:
+        raise ValueError("Text to encrypt is empty")
+    if not all('А' <= char <= 'я' or char in ' ,.!:;?""\n' for char in text):
+        raise ValueError("Text must consist of russian letters")
     result_string = ""
     for symbol in text:
-        result_string += encrypting_symbol(symbol, key_matrix)
+        try:
+            result_string += encrypting_symbol(symbol, key_matrix)
+        except ValueError as error:
+            print(f"{error}")
     return result_string

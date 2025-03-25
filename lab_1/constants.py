@@ -1,4 +1,5 @@
 from func_for_file import read_from_file
+from func_for_file import read_from_json_file
 
 
 PATH_TO_SOURCE_TEXT_1 = "source_text_task_1.txt"
@@ -13,51 +14,13 @@ PATH_TO_WRITE_DECRYPT_TEXT_2 = "decrypted_text_2.txt"
 
 PATH_TO_WRITE_DESC_WORD_CHANCE = "desc_word_chance.txt"
 
-MATRIX = [
-        ['А', 'Б', 'В', 'Г', 'Д', 'Е'],
-        ['Ё', 'Ж', 'З', 'И', 'Й', 'К'],
-        ['Л', 'М', 'Н', 'О', 'П', 'Р'],
-        ['С', 'Т', 'У', 'Ф', 'Х', 'Ц'],
-        ['Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь'],
-        ['Э', 'Ю', 'Я', '.', ',', ' ']
-         ]
+PATH_TO_KEY_TEXT_1 = "key_text_1.json"
 
-DECRYPTION_KEY = {
-    'V' : ' ',
-    'P' : 'о',
-    'U' : 'э',
-    '-' : 'т',
-    'B' : 'п',
-    'F' : 'д',
-    'R' : 'и',
-    'W' : 'р',
-    'Z' : 'я',
-    'M' : 'в',
-    '9' : 'с',
-    '$' : 'м',
-    'J' : 'а',
-    'Q' : 'щ',
-    'O' : 'ф',
-    'S' : 'ж',
-    'E' : 'ы',
-    'h' : 'б',
-    'C' : 'й',
-    'A' : 'х',
-    'K' : 'л',
-    '=' : 'ю',
-    'I' : 'ш',
-    'G' : 'ъ',
-    '>' : 'ё',
-    'x' : 'ь',
-    'Y' : 'з',
-    '3' : 'у',
-    '8' : 'е',
-    'L' : 'н',
-    '!' : 'к',
-    'n' : 'ц',
-    't' : 'г',
-    'd' : 'ч',
-}
+PATH_TO_DECRYPT_TEXT_2 = "decrypt_key_text_2.json"
+
+MATRIX = read_from_json_file(PATH_TO_KEY_TEXT_1)
+
+DECRYPTION_KEY = read_from_json_file(PATH_TO_DECRYPT_TEXT_2)
 
 SOURCE_TEXT_1 = read_from_file(PATH_TO_SOURCE_TEXT_1)
 
