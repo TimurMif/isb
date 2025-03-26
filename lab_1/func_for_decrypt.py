@@ -25,12 +25,9 @@ def text_decrypting(text: str, key_matrix: list) -> str:
     """
     result_string = ""
     for index in range(0, len(text), 2):
-        try:
-            appending_str = decrypting_code_num(text[index],
-                            text[index + 1], key_matrix)
-            result_string += appending_str
-        except ValueError as error:
-            print(f"{error}")
+        appending_str = decrypting_code_num(text[index],
+                        text[index + 1], key_matrix)
+        result_string += appending_str
     return result_string
 
 def decrypting_text_with_key(text: str, key: dict) -> str:
