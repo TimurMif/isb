@@ -1,8 +1,8 @@
 import constants
 import func_for_encrypt
 import func_for_decrypt
-import func_info_text
 import func_for_file
+import func_info_text
 
 
 def main():

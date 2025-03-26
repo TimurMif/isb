@@ -35,8 +35,5 @@ def text_encrypting(text: str, key_matrix: list) -> str:
         raise ValueError("Text must consist of russian letters")
     result_string = ""
     for symbol in text:
-        try:
-            result_string += encrypting_symbol(symbol, key_matrix)
-        except ValueError as error:
-            print(f"{error}")
+        result_string += encrypting_symbol(symbol, key_matrix)
     return result_string
