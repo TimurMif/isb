@@ -32,6 +32,6 @@ def write_report_in_file(path_to_file: str, label: str, c_score: float, j_score:
         file.write(label)
         c_str = "\nC++ sequence: " + str(c_score)
         file.write(c_str)
-        j_str = "\nC++ sequence: " + str(j_score)
+        j_str = "\nJava sequence: " + str(j_score)
         file.write(j_str)
     return label
