@@ -1,0 +1,11 @@
+Result frequency NIST tests:
+C++ sequence: 0.7236736098317631
+C++ sequence: 0.8596837951986662
+
+Result identical bits NIST tests:
+C++ sequence: 0.07498528805997988
+C++ sequence: 0.3781357102010156
+
+Result long sequence NIST tests:
+C++ sequence: 0.9737444504885402
+C++ sequence: 0.7344362179090487
