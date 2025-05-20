@@ -1,46 +1,11 @@
 import argparse
-import json
 import os
 
-import config
-import decrypt_file
-import encrypt_file
-import keys_gen
+import asymmetrical_crypt
+import sup_functions
+import symmetrical_crypt
+import works_with_files
 
-
-def load_config_settings(path_to_file = None):
-    """
-    Function for loading parameters from a json file
-    :param path_to_file: The path to the settings file
-    :return: Configuration settings
-    """
-    print("Загрузка настроек...")
-    settings = {
-        "initial_file": config.initial_file,
-        "encrypted_file": config.encrypted_file,
-        "decrypted_file": config.decrypted_file,
-        "encrypted_symmetric_key_file": getattr(config, 'encrypted_symmetric_key_file',
-                                                config.symmetric_key),
-        "public_key": config.public_key,
-        "secret_key": config.secret_key
-    }
-    if path_to_file:
-        print(f"Попытка загрузить настройки из JSON файла {path_to_file} ...")
-        if not os.path.exists(path_to_file):
-            print(f"Error: JSON файл настроек не найден по пути {path_to_file}")
-        else:
-            try:
-                with open(path_to_file, 'r', encoding='utf-8') as file:
-                    json_settings = json.load(file)
-                settings.update(json_settings)
-                print("||Настройки успешно обновлены из JSON файла||")
-            except json.JSONDecodeError:
-                print(f"Error: Неверный формат JSON файла {path_to_file}")
-            except Exception as e:
-                print(f"Error: Ошибка при загрузке настроек из файла {e}")
-
-    print("||Настройки загружены!||")
-    return settings
 
 def main():
     parser = argparse.ArgumentParser()
@@ -60,14 +25,88 @@ def main():
     elif args.decryption is not None:
         json_path = args.decryption
 
-    settings = load_config_settings(json_path if isinstance(json_path, str) else None)
+    settings = works_with_files.load_config_settings(json_path if isinstance(json_path, str) else None)
 
     if args.generation is not None:
-        keys_gen.generate_keys(settings)
+        public_key, private_key, encrypted_symmetric_key = sup_functions.generate_keys(settings)
+        works_with_files.save_public_key(public_key, settings['public_key'])
+        works_with_files.save_private_key(private_key, settings['secret_key'])
+        works_with_files.save_encrypt_symmetric_key(encrypted_symmetric_key, settings)
     elif args.encryption is not None:
-        encrypt_file.symmetric_encrypt_chacha20(settings)
+        print("\n||Шифрование информации с помощью алгоритма ChaCha20||")
+        path_to_initial = settings['initial_file']
+        path_to_private_key = settings['secret_key']
+        path_to_encrypted_sym_key = settings['encrypted_symmetric_key_file']
+        encrypted_file_path = settings['encrypted_file']
+        if not path_to_encrypted_sym_key:
+            path_to_encrypted_sym_key = settings['symmetric_key']
+        if not all([path_to_initial, path_to_private_key,
+                    path_to_encrypted_sym_key, encrypted_file_path]):
+            print(
+                "Error: Не указаны все необходимые пути в настройках для шифрования.")
+            exit(1)
+        if not os.path.exists(path_to_initial):
+            print(f"Error: Исходный файл не найден по пути {path_to_initial}")
+            exit(1)
+        if not os.path.exists(path_to_private_key):
+            print(
+                f"Error: Файл приватного ключа не найден по пути {path_to_private_key}")
+            exit(1)
+        if not os.path.exists(path_to_encrypted_sym_key):
+            print(
+                f"Error: Файл зашифрованного симметричного ключа не найден по пути {path_to_encrypted_sym_key}")
+            exit(1)
+        private_key = works_with_files.read_private_key(path_to_private_key)
+        encrypted_sym_key_data = works_with_files.read_file(path_to_encrypted_sym_key)
+        symmetric_key = asymmetrical_crypt.decrypt_symmetric_key(private_key, encrypted_sym_key_data)
+        print(f"Чтение файла {path_to_initial}...")
+        content = works_with_files.read_file(path_to_initial)
+
+        ciphertext, nonce = symmetrical_crypt.symmetric_encrypt_chacha20(content, symmetric_key)
+
+        print(f"Сохранение зашифрованных данных в файл {encrypted_file_path}...")
+        works_with_files.write_file(encrypted_file_path, ciphertext)
+        print(f"Сохранение nonce в файл {settings['nonce']}...")
+        works_with_files.write_file(settings['nonce'], nonce)
+        print("||Шифрование и сохранение завершено успешно!||")
     elif args.decryption is not None:
-        decrypt_file.symmetric_decrypt_chacha20(settings)
+        print("\n||Дешифрование информации с помощью алгоритма ChaCha20||")
+        path_to_encrypt_file = settings['encrypted_file']
+        path_to_private_key = settings['secret_key']
+        path_to_encrypted_sym_key = settings['encrypted_symmetric_key_file'] or \
+                                    settings['symmetric_key']
+        path_to_decrypted_key = settings['decrypted_file']
+
+        if not all([path_to_encrypt_file, path_to_private_key,
+                    path_to_encrypted_sym_key, path_to_decrypted_key]):
+            print(
+                "Error: Не указаны все необходимые пути в настройках для дешифрования.")
+            exit(1)
+        if not os.path.exists(path_to_encrypt_file):
+            print(
+                f"Error: Зашифрованный файл не найден по пути {path_to_encrypt_file}")
+            exit(1)
+        if not os.path.exists(path_to_private_key):
+            print(
+                f"Error: Файл приватного ключа не найден по пути {path_to_private_key}")
+            exit(1)
+        if not os.path.exists(path_to_encrypted_sym_key):
+            print(
+                f"Error: Файл зашифрованного симметричного ключа не найден по пути {path_to_encrypted_sym_key}")
+            exit(1)
+
+        private_key = works_with_files.read_private_key(path_to_private_key)
+        encrypted_sym_key_data = works_with_files.read_file(path_to_encrypted_sym_key)
+        symmetric_key = asymmetrical_crypt.decrypt_symmetric_key(private_key, encrypted_sym_key_data)
+        print(f"Чтение зашифрованного файла {path_to_encrypt_file}...")
+        encrypted_content = works_with_files.read_file(path_to_encrypt_file)
+        nonce = works_with_files.read_file(settings['nonce'])
+
+        plaintext = symmetrical_crypt.symmetric_decrypt_chacha20(encrypted_content, symmetric_key, nonce)
+
+        print(f"Сохранение расшифрованных данных в {path_to_decrypted_key}...")
+        works_with_files.write_file(path_to_decrypted_key, plaintext)
+        print("||Дешифрование и сохранение завершено успешно!||")
 
 if __name__ == "__main__":
     main()

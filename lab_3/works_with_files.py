@@ -1,7 +1,10 @@
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import padding
-from cryptography.hazmat.primitives.asymmetric import padding
+import json
+import os
+
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+from cryptography.hazmat.primitives import serialization
+
+import config
 
 
 def write_file(path_to_file, content):
@@ -79,28 +82,81 @@ def read_public_key(path_to_key):
         print(f"Error: Произошла ошибка при загрузки открытого ключа {e}")
         exit(1)
 
-
-def decrypt_symmetric_key(private_key, encrypted_symmetric_key):
+def load_config_settings(path_to_file = None):
     """
-    A function for decrypting a symmetric key using a private RSA key
+    Function for loading parameters from a json file
+    :param path_to_file: The path to the settings file
+    :return: Configuration settings
+    """
+    print("Загрузка настроек...")
+    settings = {
+        "initial_file": config.initial_file,
+        "encrypted_file": config.encrypted_file,
+        "decrypted_file": config.decrypted_file,
+        "encrypted_symmetric_key_file": getattr(config, 'encrypted_symmetric_key_file',
+                                                config.symmetric_key),
+        "public_key": config.public_key,
+        "secret_key": config.secret_key
+    }
+    if path_to_file:
+        print(f"Попытка загрузить настройки из JSON файла {path_to_file} ...")
+        if not os.path.exists(path_to_file):
+            print(f"Error: JSON файл настроек не найден по пути {path_to_file}")
+        else:
+            try:
+                with open(path_to_file, 'r', encoding='utf-8') as file:
+                    json_settings = json.load(file)
+                settings.update(json_settings)
+                print("||Настройки успешно обновлены из JSON файла||")
+            except json.JSONDecodeError:
+                print(f"Error: Неверный формат JSON файла {path_to_file}")
+            except Exception as e:
+                print(f"Error: Ошибка при загрузке настроек из файла {e}")
+
+    print("||Настройки загружены!||")
+    return settings
+
+def save_public_key(public_key, path_to_save):
+    """
+    A function for writing an RSA public key to a file
+    :param public_key: Public key
+    :param path_to_save: Path to save key
+    """
+    print(f"Сохранение открытого ключа в {path_to_save}...")
+    with open(path_to_save, 'wb') as public_out:
+        public_out.write(
+            public_key.public_bytes(encoding=serialization.Encoding.PEM,
+                                    format=serialization.PublicFormat.SubjectPublicKeyInfo))
+    print(f"Открытый ключ сохранен в {path_to_save}")
+
+def save_private_key(private_key, path_to_save):
+    """
+    A function for writing an RSA private key to a file
     :param private_key: Private key
-    :param encrypted_symmetric_key: Encrypted symmetric key
-    :return: Decrypted symmetric key
+    :param path_to_save: Path to save
     """
-    print("Расшифровка симметричного ключа в процессе...")
-    try:
-        decrypted_symmetric_key = private_key.decrypt(
-            encrypted_symmetric_key,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
-        print("||Симметричный ключ успешно расшифрован!||")
-        return decrypted_symmetric_key
-    except Exception as e:
-        print(f"Error: Произошла ошибка при расшифровке симметричного ключа {e}")
-        exit(1)
+    print(f"Сохранение закрытого ключа в {path_to_save}...")
+    with open(path_to_save, 'wb') as private_out:
+        private_out.write(
+            private_key.private_bytes(encoding=serialization.Encoding.PEM,
+                                      format=serialization.PrivateFormat.TraditionalOpenSSL,
+                                      encryption_algorithm=serialization.NoEncryption()))
+    print(f"Закрытый ключ сохранен в {path_to_save}")
 
-
+def save_encrypt_symmetric_key(encrypted_symmetric_key, settings):
+    """
+    A function for writing an RSA encrypt symmetric key key to a file
+    :param encrypted_symmetric_key: Encrypted symmetric key
+    :param settings: An object that stores parameters from a configuration file.
+    :return:
+    """
+    encrypted_sym_key_path = settings['encrypted_symmetric_key_file']
+    if not encrypted_sym_key_path:
+        encrypted_sym_key_path = settings.get('symmetric_key')
+        if not encrypted_sym_key_path:
+            print(
+                "Error: Не указан путь для сохранения зашифрованного симметричного ключа в файле конфигурации.")
+            exit(1)
+    print(f"Сохранение зашиф. симметричного ключа в {settings['encrypted_symmetric_key_file']}...")
+    write_file(settings['encrypted_symmetric_key_file'], encrypted_symmetric_key)
+    print(f"Зашифрованный симметричный ключ сохранен в {settings['encrypted_symmetric_key_file']}.")
